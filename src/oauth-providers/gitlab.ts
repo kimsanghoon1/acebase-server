@@ -26,9 +26,6 @@ interface IGitlabUser {
     picture: string // url
     groups: object
     groups_direct: object
-    "https://gitlab.org/claims/groups/owner": object
-    "https://gitlab.org/claims/groups/maintainer" : object
-    "https://gitlab.org/claims/groups/developer": object
 }
 
 export class GitlabAuthProvider extends OAuth2Provider {
