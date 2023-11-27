@@ -86,7 +86,7 @@ export const addRoute = (env: RouteInitEnvironment) => {
                     [`${state.provider}_display_name`]: user_details.display_name,
                 };
                 Object.keys(user_details.other).forEach(key => {
-                    let replaceKey = key.replace("/", "_")
+                    let replaceKey = key.replaceAll("/", "_")
                     settings[`${state.provider}_${replaceKey}`] = user_details.other[key];
                 });
                 return settings;
