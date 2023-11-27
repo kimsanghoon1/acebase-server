@@ -7,6 +7,7 @@ import { fetch } from '../shared/simple-fetch';
 export interface IGitlabAuthSettings extends IOAuth2ProviderSettings {
     /** 'openid', 'email', 'profile' and additional scopes you want to access. */
     scopes?: string[]
+    host: string
 }
 
 interface IGitlabAuthToken { access_token: string, expires_in: number, expires: Date, id_token: IOpenIDToken, refresh_token: string, scope: string, token_type: string }
@@ -14,33 +15,20 @@ interface IGitlabError { error: string, error_description: string }
 interface IGitlabUser {
     // See https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
     sub: string // "subject"
+    auth_time: number // auth time
     name: string    // full name
-    given_name: string  // first name
-    family_name: string // last name
-    middle_name: string
     nickname: string
     preferred_username: string
-    profile: string // url
-    picture: string // url
-    website: string // url
     email: string
     email_verified: boolean
-    gender: string
-    birthdate: string // YYYY-MM-DD
-    zoneinfo: string // timezone location (eg Europe/Paris)
-    locale: string      // eg en-us, nl-be
-    phone_number: string
-    phone_number_verified: boolean
-    address: {
-        // See https://openid.net/specs/openid-connect-core-1_0.html#AddressClaim
-        formatted?: string
-        street_address: string
-        locality: string // eg city
-        region: string  // State, province, prefecture, or region component
-        postal_code: string
-        country: string
-    }
-    updated_at: number
+    website: string
+    profile: string // url
+    picture: string // url
+    groups: object
+    groups_direct: object
+    "https://gitlab.org/claims/groups/owner": object
+    "https://gitlab.org/claims/groups/maintainer" : object
+    "https://gitlab.org/claims/groups/developer": object
 }
 
 export class GitlabAuthProvider extends OAuth2Provider {
@@ -58,7 +46,7 @@ export class GitlabAuthProvider extends OAuth2Provider {
     async getOpenIDConfig() {
         // Get Open ID config ("The Discovery document")
         if (this._config) { return this._config; }
-        this._config = await fetch(`https://accounts.Gitlab.com/.well-known/openid-configuration`).then(res => res.json());
+        this._config = await fetch(`https://${this.settings.host}/.well-known/openid-configuration`).then(res => res.json());
         return this._config;
     }
 
@@ -126,7 +114,7 @@ export class GitlabAuthProvider extends OAuth2Provider {
         return {
             id: user.sub,
             name: user.name,
-            display_name: user.nickname || user.given_name,
+            display_name: user.nickname || user.name,
             picture: user.picture ? [{ url: user.picture }] : [],
             email: user.email,
             email_verified: user.email_verified,
@@ -135,7 +123,18 @@ export class GitlabAuthProvider extends OAuth2Provider {
                 .reduce((obj, key) => { obj[key] = user[key]; return obj; }, {}),
         };
     }
-
+    // sub: string // "subject"
+    // auth_time: number // auth time
+    // name: string    // full name
+    // nickname: string
+    // preferred_username: string
+    // email: string
+    // email_verified: boolean
+    // website: string
+    // profile: string // url
+    // picture: string // url
+    // groups: object
+    // groups_direct: object
 }
 
 export const AuthProvider = GitlabAuthProvider;

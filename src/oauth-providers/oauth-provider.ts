@@ -1,7 +1,8 @@
 export interface IOAuth2ProviderSettings {
     client_id: string,
     client_secret: string,
-    scopes?: string[]
+    scopes?: string[],
+    host?: string
 }
 export interface IOAuth2RefreshTokenParams {
     type: 'refresh'
