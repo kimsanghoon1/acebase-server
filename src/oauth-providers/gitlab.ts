@@ -2,16 +2,16 @@ import { IOAuth2ProviderSettings, IOpenIDToken, IOpenIDConfiguration, IOAuth2Aut
 import { fetch } from '../shared/simple-fetch';
 
 /**
- * Details of your app to access the Google API. See https://developers.google.com/identity/protocols/oauth2/scopes
+ * Details of your app to access the Gitlab API. See https://developers.Gitlab.com/identity/protocols/oauth2/scopes
  */
-export interface IGoogleAuthSettings extends IOAuth2ProviderSettings {
+export interface IGitlabAuthSettings extends IOAuth2ProviderSettings {
     /** 'openid', 'email', 'profile' and additional scopes you want to access. */
     scopes?: string[]
 }
 
-interface IGoogleAuthToken { access_token: string, expires_in: number, expires: Date, id_token: IOpenIDToken, refresh_token: string, scope: string, token_type: string }
-interface IGoogleError { error: string, error_description: string }
-interface IGoogleUser {
+interface IGitlabAuthToken { access_token: string, expires_in: number, expires: Date, id_token: IOpenIDToken, refresh_token: string, scope: string, token_type: string }
+interface IGitlabError { error: string, error_description: string }
+interface IGitlabUser {
     // See https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
     sub: string // "subject"
     name: string    // full name
@@ -43,11 +43,11 @@ interface IGoogleUser {
     updated_at: number
 }
 
-export class GoogleAuthProvider extends OAuth2Provider {
+export class GitlabAuthProvider extends OAuth2Provider {
 
     _config: IOpenIDConfiguration;
 
-    constructor(settings: IGoogleAuthSettings) {
+    constructor(settings: IGitlabAuthSettings) {
         super(settings);
         if (!settings.scopes) { settings.scopes = []; }
         if (!settings.scopes.includes('email')) { settings.scopes.push('email'); }
@@ -58,7 +58,7 @@ export class GoogleAuthProvider extends OAuth2Provider {
     async getOpenIDConfig() {
         // Get Open ID config ("The Discovery document")
         if (this._config) { return this._config; }
-        this._config = await fetch(`https://accounts.google.com/.well-known/openid-configuration`).then(res => res.json());
+        this._config = await fetch(`https://accounts.Gitlab.com/.well-known/openid-configuration`).then(res => res.json());
         return this._config;
     }
 
@@ -69,20 +69,20 @@ export class GoogleAuthProvider extends OAuth2Provider {
      */
     async init(info: OAuth2ProviderInitInfo) {
         // Return url to get authorization code with
-        // See https://developers.google.com/identity/protocols/oauth2/web-server#httprest
+        // See https://developers.Gitlab.com/identity/protocols/oauth2/web-server#httprest
 
         const config = await this.getOpenIDConfig();
-        // https://accounts.google.com/o/oauth2/v2/auth
+        // https://accounts.Gitlab.com/o/oauth2/v2/auth
         const authUrl = `${config.authorization_endpoint}?response_type=code&access_type=offline&include_granted_scopes=true&client_id=${this.settings.client_id}&scope=${encodeURIComponent(this.settings.scopes.join(' '))}&redirect_uri=${encodeURIComponent(info.redirect_url)}&state=${encodeURIComponent(info.state)}`;
         // optional: login_hint=email@server.com
         // optional: prompt=none|consent|select_account
         return authUrl;
     }
 
-    async getAccessToken(params: IOAuth2AuthCodeParams|IOAuth2RefreshTokenParams) : Promise<IGoogleAuthToken> {
+    async getAccessToken(params: IOAuth2AuthCodeParams|IOAuth2RefreshTokenParams) : Promise<IGitlabAuthToken> {
         // Request access & refresh tokens with authorization code, or refresh token
         const config = await this.getOpenIDConfig();
-        // 'https://oauth2.googleapis.com/token'
+        // 'https://oauth2.Gitlabapis.com/token'
         const response = await fetch(config.token_endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -91,7 +91,7 @@ export class GoogleAuthProvider extends OAuth2Provider {
                 ? `${params.refresh_token}&grant_type=refresh_token`
                 : `${params.auth_code}&grant_type=authorization_code&redirect_uri=${encodeURIComponent(params.redirect_url)}`),
         });
-        const result = await response.json() as IGoogleAuthToken;
+        const result = await response.json() as IGitlabAuthToken;
         if ((result as any).error) {
             throw new Error((result as any).error);
         }
@@ -102,7 +102,7 @@ export class GoogleAuthProvider extends OAuth2Provider {
 
     async revokeAccess(access_token: string) {
         const config = await this.getOpenIDConfig();
-        // https://oauth2.googleapis.com/revoke
+        // https://oauth2.Gitlabapis.com/revoke
         const response = await fetch(`${config.revocation_endpoint}?token=${access_token}`);
         if (response.status !== 200) {
             throw new Error(`Revoke failed, error ${response.status}`);
@@ -111,18 +111,18 @@ export class GoogleAuthProvider extends OAuth2Provider {
 
     async getUserInfo(access_token: string) {
         const config = await this.getOpenIDConfig();
-        // https://openidconnect.googleapis.com/v1/userinfo
+        // https://openidconnect.Gitlabapis.com/v1/userinfo
         const response = await fetch(config.userinfo_endpoint, {
             method: 'GET' ,
             headers: { 'Authorization': `Bearer ${access_token}` },
         });
         const result = await response.json();
         if (response.status !== 200) {
-            const error = result as IGoogleError;
+            const error = result as IGitlabError;
             throw new Error(`${error.error}: ${error.error_description}`);
         }
 
-        const user = result as IGoogleUser;
+        const user = result as IGitlabUser;
         return {
             id: user.sub,
             name: user.name,
@@ -138,4 +138,4 @@ export class GoogleAuthProvider extends OAuth2Provider {
 
 }
 
-export const AuthProvider = GoogleAuthProvider;
+export const AuthProvider = GitlabAuthProvider;
