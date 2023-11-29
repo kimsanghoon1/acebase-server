@@ -61,7 +61,7 @@ function getVariable(name: string, defaultValue?: any) {
 
 const options: AceBaseServerSettings = {
     host: getVariable('HOST', 'localhost'),
-    port: +getVariable('PORT', 3000),
+    port: +getVariable('PORT', 5757),
     path: getVariable('DBPATH', '.'),
     rootPath: getVariable('ROOT_PATH', ''),
 };
@@ -107,8 +107,17 @@ if (getVariable('AUTH', 'true') === 'true' || +getVariable('AUTH', 1) === 1) {
 else {
     options.authentication = { enabled: false };
 }
-const dbname = getVariable('DBNAME', 'default');
+const dbname = getVariable('DBNAME', 'mydb');
 const server = new AceBaseServer(dbname, options);
+
+server.configAuthProvider('gitlab', {
+    client_id: "fedc8e2fb59386c35cb015458efaaaf4084b2fc0175821f75e70050aa704ac0f",
+    client_secret: "53c55954b00514dc3c56bea12c31b325a9f7e0ca3628cdc20ee04f6f2cef9fbe",
+    scopes: ["read_user api read_api read_repository write_repository sudo openid profile email write_registry read_registry admin_mode"],
+    state: "devopssystem",
+    host: "gitlab.handymes.com"
+})
+
 server.once('ready', () => {
     server.debug.log(`AceBase server running`);
     process.send?.('ready'); // When using pm2, you can use --wait-ready flag (see https://pm2.keymetrics.io/docs/usage/signals-clean-restart/)

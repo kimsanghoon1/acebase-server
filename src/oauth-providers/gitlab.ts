@@ -53,12 +53,10 @@ export class GitlabAuthProvider extends OAuth2Provider {
      * @param info.state Optional state that will be passed to redirectUri by spotify
      */
     async init(info: OAuth2ProviderInitInfo) {
-        // Return url to get authorization code with
-        // See https://developers.Gitlab.com/identity/protocols/oauth2/web-server#httprest
 
         const config = await this.getOpenIDConfig();
-        // https://accounts.Gitlab.com/o/oauth2/v2/auth
-        const authUrl = `${config.authorization_endpoint}?response_type=code&access_type=offline&include_granted_scopes=true&client_id=${this.settings.client_id}&scope=${encodeURIComponent(this.settings.scopes.join(' '))}&redirect_uri=${encodeURIComponent(info.redirect_url)}&state=${encodeURIComponent(info.state)}`;
+        
+        const authUrl = `${config.authorization_endpoint}?response_type=code&client_id=${this.settings.client_id}&scope=${encodeURIComponent(this.settings.scopes.join(' '))}&redirect_uri=${encodeURIComponent(info.redirect_url)}&state=${encodeURIComponent(info.state)}`;
         // optional: login_hint=email@server.com
         // optional: prompt=none|consent|select_account
         return authUrl;
@@ -67,7 +65,6 @@ export class GitlabAuthProvider extends OAuth2Provider {
     async getAccessToken(params: IOAuth2AuthCodeParams|IOAuth2RefreshTokenParams) : Promise<IGitlabAuthToken> {
         // Request access & refresh tokens with authorization code, or refresh token
         const config = await this.getOpenIDConfig();
-        // 'https://oauth2.Gitlabapis.com/token'
         const response = await fetch(config.token_endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -96,7 +93,6 @@ export class GitlabAuthProvider extends OAuth2Provider {
 
     async getUserInfo(access_token: string) {
         const config = await this.getOpenIDConfig();
-        // https://openidconnect.Gitlabapis.com/v1/userinfo
         const response = await fetch(config.userinfo_endpoint, {
             method: 'GET' ,
             headers: { 'Authorization': `Bearer ${access_token}` },
@@ -120,18 +116,6 @@ export class GitlabAuthProvider extends OAuth2Provider {
                 .reduce((obj, key) => { obj[key] = user[key]; return obj; }, {}),
         };
     }
-    // sub: string // "subject"
-    // auth_time: number // auth time
-    // name: string    // full name
-    // nickname: string
-    // preferred_username: string
-    // email: string
-    // email_verified: boolean
-    // website: string
-    // profile: string // url
-    // picture: string // url
-    // groups: object
-    // groups_direct: object
 }
 
 export const AuthProvider = GitlabAuthProvider;
