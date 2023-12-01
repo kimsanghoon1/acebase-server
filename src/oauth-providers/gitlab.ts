@@ -82,15 +82,6 @@ export class GitlabAuthProvider extends OAuth2Provider {
         return result;
     }
 
-    async revokeAccess(access_token: string) {
-        const config = await this.getOpenIDConfig();
-        // https://oauth2.Gitlabapis.com/revoke
-        const response = await fetch(`${config.revocation_endpoint}?token=${access_token}`);
-        if (response.status !== 200) {
-            throw new Error(`Revoke failed, error ${response.status}`);
-        }
-    }
-
     async getUserInfo(access_token: string) {
         const config = await this.getOpenIDConfig();
         const response = await fetch(config.userinfo_endpoint, {
