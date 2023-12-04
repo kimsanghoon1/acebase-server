@@ -38,7 +38,8 @@ export const addRoute = (env: RouteInitEnvironment) => {
             res.send({ redirectUrl: clientAuthUrl });
         }
         catch(err) {
-            res.status(500).send(err.message);
+            // let errMsg = `${req.protocol}, ${req.headers.host},`
+            res.status(500).send(err.stack);
         }
 
     });

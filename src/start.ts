@@ -1,6 +1,6 @@
 import { AceBaseServer } from './server';
 import { AceBaseServerSettings } from './settings';
-
+process.env.NODE_ENV = 'development';
 /*
 
 Use environment variables or pass arguments to this script to start an AceBase server
@@ -64,6 +64,7 @@ const options: AceBaseServerSettings = {
     port: +getVariable('PORT', 5757),
     path: getVariable('DBPATH', '.'),
     rootPath: getVariable('ROOT_PATH', ''),
+    logLevel: 'verbose'
 };
 
 // Check if we should use a remote IPC server, let AceBase use a local IPC socket otherwise
